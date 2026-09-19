@@ -134,6 +134,14 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+.stat.look .v {
+  color: var(--accent);
+}
+
+.board.inspecting {
+  box-shadow: var(--shadow), 0 0 0 2px var(--accent);
+}
+
 .stage {
   position: relative;
   width: min(92vw, 68vh, 640px);

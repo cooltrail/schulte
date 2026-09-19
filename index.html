@@ -9,7 +9,7 @@
   <script>
     if (localStorage.getItem('schulte-theme') === 'light') document.documentElement.classList.add('light');
   </script>
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <div class="page">
@@ -35,9 +35,9 @@
         <span class="k">Next</span>
         <span id="next" class="v">1</span>
       </div>
-      <div class="stat">
-        <span class="k">Time</span>
-        <span id="time" class="v">0.00</span>
+      <div id="time-stat" class="stat">
+        <span id="time-label" class="k">Look</span>
+        <span id="time" class="v">10.00</span>
       </div>
       <div class="stat">
         <span class="k">Best</span>
@@ -57,6 +57,6 @@
       <button id="shuffle-btn" type="button">Shuffle</button>
     </footer>
   </div>
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>

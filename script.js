@@ -10,6 +10,8 @@
   var board = document.getElementById('board');
   var nextEl = document.getElementById('next');
   var timeEl = document.getElementById('time');
+  var timeLabel = document.getElementById('time-label');
+  var timeStat = document.getElementById('time-stat');
   var bestEl = document.getElementById('best');
   var doneEl = document.getElementById('done');
   var doneCopy = document.getElementById('done-copy');
@@ -19,13 +21,16 @@
   var tagline = document.getElementById('tagline');
   var modeBtns = document.querySelectorAll('[data-mode]');
 
+  var INSPECT_SEC = 10;
   var size = clampSize(parseInt(localStorage.getItem(SIZE_KEY), 10) || 5);
   var mode = localStorage.getItem(MODE_KEY) === 'prime' ? 'prime' : 'classic';
   var sequence = [];
   var nextIndex = 0;
   var started = false;
   var finished = false;
+  var inspecting = false;
   var t0 = 0;
+  var inspectT0 = 0;
   var raf = 0;
   var audioCtx = null;
   var noiseBuf = null;
@@ -216,14 +221,62 @@
       : 'Tap 1, then 2, then the rest. Eyes stay on the center.';
   }
 
+  function showTimeLabel(look) {
+    timeLabel.textContent = look ? 'Look' : 'Time';
+    timeStat.classList.toggle('look', look);
+  }
+
   function tick() {
     if (!started || finished) return;
     timeEl.textContent = fmt((performance.now() - t0) / 1000);
     raf = requestAnimationFrame(tick);
   }
 
+  function inspectTick() {
+    if (!inspecting || finished) return;
+    var left = INSPECT_SEC - (performance.now() - inspectT0) / 1000;
+    if (left <= 0) {
+      endInspect(true);
+      return;
+    }
+    timeEl.textContent = fmt(left);
+    raf = requestAnimationFrame(inspectTick);
+  }
+
   function stopClock() {
     cancelAnimationFrame(raf);
+  }
+
+  function beginInspect() {
+    inspecting = true;
+    inspectT0 = performance.now();
+    board.classList.add('inspecting');
+    showTimeLabel(true);
+    timeEl.textContent = fmt(INSPECT_SEC);
+    raf = requestAnimationFrame(inspectTick);
+  }
+
+  function endInspect(beginPlay) {
+    if (!inspecting) return;
+    inspecting = false;
+    stopClock();
+    board.classList.remove('inspecting');
+    showTimeLabel(false);
+    if (beginPlay) {
+      tapSound('ui');
+      startRun();
+    } else if (!started) {
+      timeEl.textContent = '0.00';
+    }
+  }
+
+  function startRun() {
+    if (started || finished) return;
+    if (inspecting) endInspect(false);
+    started = true;
+    t0 = performance.now();
+    showTimeLabel(false);
+    tick();
   }
 
   function buildSizes() {
@@ -243,14 +296,15 @@
     stopClock();
     started = false;
     finished = false;
+    inspecting = false;
     nextIndex = 0;
     sequence = mode === 'prime' ? firstPrimes(size * size) : range(size * size);
     t0 = 0;
     nextEl.textContent = String(sequence[0]);
-    timeEl.textContent = '0.00';
+    timeEl.textContent = fmt(INSPECT_SEC);
     doneEl.classList.add('hidden');
     showBest();
-    board.classList.remove('shake');
+    board.classList.remove('shake', 'inspecting');
     board.style.gridTemplateColumns = 'repeat(' + size + ', 1fr)';
     board.innerHTML = '';
     shuffle(sequence).forEach(function (num) {
@@ -261,11 +315,14 @@
       cell.dataset.n = String(num);
       board.appendChild(cell);
     });
+    beginInspect();
   }
 
   function finish() {
     finished = true;
     started = false;
+    inspecting = false;
+    showTimeLabel(false);
     stopClock();
     var seconds = (performance.now() - t0) / 1000;
     timeEl.textContent = fmt(seconds);
@@ -291,11 +348,7 @@
       setTimeout(function () { cell.classList.remove('miss'); }, 180);
       return;
     }
-    if (!started) {
-      started = true;
-      t0 = performance.now();
-      tick();
-    }
+    startRun();
     cell.classList.add('got', 'flash');
     tapSound('hit');
     setTimeout(function () { cell.classList.remove('flash'); }, 120);
