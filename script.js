@@ -28,6 +28,7 @@
   var t0 = 0;
   var raf = 0;
   var audioCtx = null;
+  var noiseBuf = null;
 
   function clampSize(n) {
     if (n < 2) return 2;
@@ -78,19 +79,93 @@
     themeBtn.textContent = light ? 'Dark' : 'Light';
   }
 
-  function beep(freq, dur, type) {
+  function ensureAudio() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!noiseBuf) {
+      var len = Math.floor(audioCtx.sampleRate * 0.25);
+      noiseBuf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+      var data = noiseBuf.getChannelData(0);
+      var b0 = 0;
+      var b1 = 0;
+      var b2 = 0;
+      var i;
+      for (i = 0; i < len; i++) {
+        var white = Math.random() * 2 - 1;
+        b0 = 0.99765 * b0 + white * 0.099046;
+        b1 = 0.963 * b1 + white * 0.2965164;
+        b2 = 0.57 * b2 + white * 1.0526913;
+        data[i] = (b0 + b1 + b2 + white * 0.1848) * 0.35;
+      }
+    }
+    return audioCtx;
+  }
+
+  function outNode(when, panAmt) {
+    var c = audioCtx;
+    if (typeof c.createStereoPanner !== 'function') return c.destination;
+    var pan = c.createStereoPanner();
+    pan.pan.setValueAtTime(panAmt, when);
+    pan.connect(c.destination);
+    return pan;
+  }
+
+  function noiseBurst(when, dur, freq, q, gain, panAmt) {
+    var src = audioCtx.createBufferSource();
+    src.buffer = noiseBuf;
+    var filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(freq, when);
+    filter.Q.setValueAtTime(q, when);
+    var g = audioCtx.createGain();
+    g.gain.setValueAtTime(Math.max(gain, 0.0001), when);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    src.connect(filter);
+    filter.connect(g);
+    g.connect(outNode(when, panAmt));
+    src.start(when, Math.random() * 0.15, dur + 0.02);
+  }
+
+  function tone(when, freq, dur, gain, panAmt) {
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, when);
+    g.gain.setValueAtTime(Math.max(gain, 0.0001), when);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(g);
+    g.connect(outNode(when, panAmt));
+    osc.start(when);
+    osc.stop(when + dur + 0.02);
+  }
+
+  function tapSound(kind) {
     try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      var osc = audioCtx.createOscillator();
-      var gain = audioCtx.createGain();
-      osc.type = type || 'triangle';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + dur);
+      if (!ensureAudio()) return;
+      var t = audioCtx.currentTime;
+      var j = Math.random() - 0.5;
+      var pan = j * 0.28;
+      if (kind === 'hit') {
+        noiseBurst(t, 0.016, 1280 + j * 220, 3.2, 0.32, pan);
+        tone(t, 168 + j * 16, 0.032, 0.05, pan);
+        noiseBurst(t + 0.034, 0.01, 4600 + j * 380, 8.5, 0.22, pan * 0.7);
+        tone(t + 0.032, 2050 + j * 140, 0.02, 0.032, pan * 0.7);
+      } else if (kind === 'miss') {
+        noiseBurst(t, 0.05, 360 + j * 40, 1.3, 0.18, pan * 0.4);
+        tone(t, 92, 0.08, 0.038, pan * 0.4);
+      } else if (kind === 'done') {
+        noiseBurst(t, 0.018, 2100, 5, 0.2, -0.12);
+        tone(t, 540, 0.07, 0.036, -0.12);
+        noiseBurst(t + 0.11, 0.02, 2900, 6, 0.18, 0.04);
+        tone(t + 0.11, 760, 0.09, 0.04, 0.04);
+        noiseBurst(t + 0.24, 0.022, 3400, 7, 0.16, 0.16);
+        tone(t + 0.24, 980, 0.12, 0.036, 0.16);
+      } else if (kind === 'ui') {
+        noiseBurst(t, 0.012, 2500 + j * 220, 6, 0.12, pan * 0.5);
+        tone(t, 1480 + j * 80, 0.018, 0.018, pan * 0.5);
+      }
     } catch (e) {}
   }
 
@@ -200,8 +275,7 @@
       ? 'New best · ' + fmt(seconds) + 's'
       : 'Done · ' + fmt(seconds) + 's';
     doneEl.classList.remove('hidden');
-    beep(520, 0.12, 'sine');
-    setTimeout(function () { beep(780, 0.18, 'sine'); }, 90);
+    tapSound('done');
   }
 
   board.addEventListener('click', function (e) {
@@ -213,7 +287,7 @@
       board.classList.remove('shake');
       void board.offsetWidth;
       board.classList.add('shake');
-      beep(140, 0.12, 'sawtooth');
+      tapSound('miss');
       setTimeout(function () { cell.classList.remove('miss'); }, 180);
       return;
     }
@@ -223,7 +297,7 @@
       tick();
     }
     cell.classList.add('got', 'flash');
-    beep(420 + nextIndex * 8, 0.07, 'triangle');
+    tapSound('hit');
     setTimeout(function () { cell.classList.remove('flash'); }, 120);
     nextIndex += 1;
     if (nextIndex >= sequence.length) {
@@ -239,17 +313,25 @@
     if (!btn) return;
     size = clampSize(Number(btn.dataset.size));
     localStorage.setItem(SIZE_KEY, String(size));
+    tapSound('ui');
     buildSizes();
     newTable();
   });
 
-  shuffleBtn.addEventListener('click', newTable);
-  againBtn.addEventListener('click', newTable);
+  shuffleBtn.addEventListener('click', function () {
+    tapSound('ui');
+    newTable();
+  });
+  againBtn.addEventListener('click', function () {
+    tapSound('ui');
+    newTable();
+  });
 
   modeBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       mode = btn.dataset.mode === 'prime' ? 'prime' : 'classic';
       localStorage.setItem(MODE_KEY, mode);
+      tapSound('ui');
       syncMode();
       newTable();
     });
@@ -259,8 +341,13 @@
     var light = !document.documentElement.classList.contains('light');
     document.documentElement.classList.toggle('light', light);
     localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
+    tapSound('ui');
     themeOn();
   });
+
+  document.addEventListener('pointerdown', function () {
+    ensureAudio();
+  }, { once: true });
 
   themeOn();
   syncMode();
