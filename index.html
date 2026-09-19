@@ -9,17 +9,22 @@
   <script>
     if (localStorage.getItem('schulte-theme') === 'light') document.documentElement.classList.add('light');
   </script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
   <div class="page">
     <header class="mast">
       <div class="brand">
         <h1>Schulte</h1>
-        <p>Tap 1, then 2, then the rest. Eyes stay on the center.</p>
+        <p id="tagline">Tap 1, then 2, then the rest. Eyes stay on the center.</p>
       </div>
       <button id="theme-btn" type="button" aria-label="Toggle theme">Light</button>
     </header>
+
+    <section class="modes" aria-label="Mode">
+      <button class="size-btn on" type="button" data-mode="classic">Classic</button>
+      <button class="size-btn" type="button" data-mode="prime">Prime</button>
+    </section>
 
     <section class="sizes" aria-label="Grid size">
       <div id="size-buttons" class="size-row"></div>
@@ -52,6 +57,6 @@
       <button id="shuffle-btn" type="button">Shuffle</button>
     </footer>
   </div>
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
 </body>
 </html>

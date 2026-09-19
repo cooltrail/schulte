@@ -78,6 +78,11 @@ html, body {
   cursor: pointer;
 }
 
+.modes {
+  display: flex;
+  gap: 0.4rem;
+}
+
 .size-row {
   display: flex;
   flex-wrap: wrap;

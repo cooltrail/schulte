@@ -3,6 +3,7 @@
 
   var SIZE_KEY = 'schulte-size';
   var THEME_KEY = 'schulte-theme';
+  var MODE_KEY = 'schulte-mode';
   var BEST_KEY = 'schulte-best';
 
   var sizeButtons = document.getElementById('size-buttons');
@@ -15,9 +16,13 @@
   var againBtn = document.getElementById('again-btn');
   var shuffleBtn = document.getElementById('shuffle-btn');
   var themeBtn = document.getElementById('theme-btn');
+  var tagline = document.getElementById('tagline');
+  var modeBtns = document.querySelectorAll('[data-mode]');
 
   var size = clampSize(parseInt(localStorage.getItem(SIZE_KEY), 10) || 5);
-  var next = 1;
+  var mode = localStorage.getItem(MODE_KEY) === 'prime' ? 'prime' : 'classic';
+  var sequence = [];
+  var nextIndex = 0;
   var started = false;
   var finished = false;
   var t0 = 0;
@@ -38,16 +43,21 @@
     }
   }
 
+  function bestKey() {
+    return mode + '-' + size;
+  }
+
   function readBest() {
-    var v = bestMap()[size];
+    var v = bestMap()[bestKey()];
     return typeof v === 'number' ? v : null;
   }
 
   function writeBest(seconds) {
     var map = bestMap();
-    var prev = map[size];
+    var key = bestKey();
+    var prev = map[key];
     if (typeof prev !== 'number' || seconds < prev) {
-      map[size] = seconds;
+      map[key] = seconds;
       localStorage.setItem(BEST_KEY, JSON.stringify(map));
       return true;
     }
@@ -84,17 +94,51 @@
     } catch (e) {}
   }
 
-  function shuffle(n) {
+  function firstPrimes(count) {
+    var primes = [];
+    var n = 2;
+    while (primes.length < count) {
+      var ok = true;
+      var i;
+      for (i = 0; i < primes.length; i++) {
+        if (primes[i] * primes[i] > n) break;
+        if (n % primes[i] === 0) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) primes.push(n);
+      n += 1;
+    }
+    return primes;
+  }
+
+  function range(n) {
     var list = [];
     var i;
     for (i = 1; i <= n; i++) list.push(i);
-    for (i = list.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = list[i];
-      list[i] = list[j];
-      list[j] = tmp;
-    }
     return list;
+  }
+
+  function shuffle(list) {
+    var copy = list.slice();
+    var i;
+    for (i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  }
+
+  function syncMode() {
+    modeBtns.forEach(function (btn) {
+      btn.classList.toggle('on', btn.dataset.mode === mode);
+    });
+    tagline.textContent = mode === 'prime'
+      ? 'Tap primes in order: 2, then 3, then 5. Eyes stay on the center.'
+      : 'Tap 1, then 2, then the rest. Eyes stay on the center.';
   }
 
   function tick() {
@@ -124,16 +168,17 @@
     stopClock();
     started = false;
     finished = false;
-    next = 1;
+    nextIndex = 0;
+    sequence = mode === 'prime' ? firstPrimes(size * size) : range(size * size);
     t0 = 0;
-    nextEl.textContent = '1';
+    nextEl.textContent = String(sequence[0]);
     timeEl.textContent = '0.00';
     doneEl.classList.add('hidden');
     showBest();
     board.classList.remove('shake');
     board.style.gridTemplateColumns = 'repeat(' + size + ', 1fr)';
     board.innerHTML = '';
-    shuffle(size * size).forEach(function (num) {
+    shuffle(sequence).forEach(function (num) {
       var cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell';
@@ -163,7 +208,7 @@
     var cell = e.target.closest('.cell');
     if (!cell || finished) return;
     var n = Number(cell.dataset.n);
-    if (n !== next) {
+    if (n !== sequence[nextIndex]) {
       cell.classList.add('miss');
       board.classList.remove('shake');
       void board.offsetWidth;
@@ -178,14 +223,14 @@
       tick();
     }
     cell.classList.add('got', 'flash');
-    beep(420 + next * 8, 0.07, 'triangle');
+    beep(420 + nextIndex * 8, 0.07, 'triangle');
     setTimeout(function () { cell.classList.remove('flash'); }, 120);
-    next += 1;
-    if (next > size * size) {
+    nextIndex += 1;
+    if (nextIndex >= sequence.length) {
       nextEl.textContent = '✓';
       finish();
     } else {
-      nextEl.textContent = String(next);
+      nextEl.textContent = String(sequence[nextIndex]);
     }
   });
 
@@ -201,6 +246,15 @@
   shuffleBtn.addEventListener('click', newTable);
   againBtn.addEventListener('click', newTable);
 
+  modeBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      mode = btn.dataset.mode === 'prime' ? 'prime' : 'classic';
+      localStorage.setItem(MODE_KEY, mode);
+      syncMode();
+      newTable();
+    });
+  });
+
   themeBtn.addEventListener('click', function () {
     var light = !document.documentElement.classList.contains('light');
     document.documentElement.classList.toggle('light', light);
@@ -209,6 +263,7 @@
   });
 
   themeOn();
+  syncMode();
   buildSizes();
   newTable();
 })();
