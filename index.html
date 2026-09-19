@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Schulte</title>
+  <meta name="description" content="A Schulte table for focus training. Find the numbers in order." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111114'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='Georgia' fill='%23f4e7d0'%3E5%3C/text%3E%3C/svg%3E" />
+  <script>
+    if (localStorage.getItem('schulte-theme') === 'light') document.documentElement.classList.add('light');
+  </script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="mast">
+      <div class="brand">
+        <h1>Schulte</h1>
+        <p>Tap 1, then 2, then the rest. Eyes stay on the center.</p>
+      </div>
+      <button id="theme-btn" type="button" aria-label="Toggle theme">Light</button>
+    </header>
+
+    <section class="sizes" aria-label="Grid size">
+      <div id="size-buttons" class="size-row"></div>
+    </section>
+
+    <section class="hud">
+      <div class="stat">
+        <span class="k">Next</span>
+        <span id="next" class="v">1</span>
+      </div>
+      <div class="stat">
+        <span class="k">Time</span>
+        <span id="time" class="v">0.00</span>
+      </div>
+      <div class="stat">
+        <span class="k">Best</span>
+        <span id="best" class="v">—</span>
+      </div>
+    </section>
+
+    <main class="stage">
+      <div id="board" class="board" role="grid" aria-label="Schulte table"></div>
+      <div id="done" class="done hidden">
+        <p id="done-copy"></p>
+        <button id="again-btn" type="button">New table</button>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <button id="shuffle-btn" type="button">Shuffle</button>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
