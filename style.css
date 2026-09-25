@@ -139,7 +139,7 @@ html, body {
 }
 
 .board.inspecting {
-  box-shadow: var(--shadow), 0 0 0 2px var(--accent);
+  box-shadow: var(--shadow), inset 0 0 0 2px var(--accent);
 }
 
 .stage {
@@ -147,29 +147,54 @@ html, body {
   width: min(92vw, 68vh, 640px);
   margin: 0 auto;
   aspect-ratio: 1 / 1;
+  container-type: inline-size;
 }
 
 .board {
+  --n: 5;
   width: 100%;
   height: 100%;
   display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
   gap: 3px;
   background: var(--rule);
   padding: 3px;
   border-radius: 0.5rem;
   box-shadow: var(--shadow);
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
 }
 
 .cell {
   border: 0;
   margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--paper);
   color: var(--ink);
   font-family: inherit;
   font-weight: 700;
-  font-size: clamp(0.85rem, 5.2vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: calc((min(92vw, 68vh, 640px) - 6px) / var(--n) * 0.4);
   cursor: pointer;
   user-select: none;
+}
+
+@supports (font-size: 1cqi) {
+  .cell {
+    font-size: calc((100cqi - 6px) / var(--n) * 0.4);
+  }
 }
 
 .cell:nth-child(even) {
@@ -231,5 +256,5 @@ html.light .done {
 }
 
 @media (min-width: 720px) {
-  .cell { font-size: clamp(1rem, 3.4vw, 2.2rem); }
+  .cell { letter-spacing: -0.02em; }
 }

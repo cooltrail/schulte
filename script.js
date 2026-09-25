@@ -305,7 +305,7 @@
     doneEl.classList.add('hidden');
     showBest();
     board.classList.remove('shake', 'inspecting');
-    board.style.gridTemplateColumns = 'repeat(' + size + ', 1fr)';
+    board.style.setProperty('--n', String(size));
     board.innerHTML = '';
     shuffle(sequence).forEach(function (num) {
       var cell = document.createElement('button');
@@ -315,7 +315,44 @@
       cell.dataset.n = String(num);
       board.appendChild(cell);
     });
+    fitCellType();
     beginInspect();
+  }
+
+  function glyphBox(el) {
+    var range = document.createRange();
+    if (el.firstChild) range.selectNodeContents(el.firstChild);
+    else range.selectNodeContents(el);
+    return range.getBoundingClientRect();
+  }
+
+  function fitCellType() {
+    var cells = board.querySelectorAll('.cell');
+    if (!cells.length || cells[0].clientWidth < 4) return;
+    var i;
+    var pad = 4;
+    function apply(px) {
+      for (i = 0; i < cells.length; i++) cells[i].style.fontSize = px + 'px';
+    }
+    function fits(px) {
+      apply(px);
+      for (i = 0; i < cells.length; i++) {
+        var box = glyphBox(cells[i]);
+        if (box.width > cells[i].clientWidth - pad) return false;
+        if (box.height > cells[i].clientHeight - pad) return false;
+      }
+      return true;
+    }
+    var hi = Math.min(cells[0].clientWidth, cells[0].clientHeight) * 0.78;
+    var lo = 8;
+    if (fits(hi)) return;
+    var step;
+    for (step = 0; step < 14; step++) {
+      var mid = (lo + hi) / 2;
+      if (fits(mid)) lo = mid;
+      else hi = mid;
+    }
+    apply(Math.floor(lo * 10) / 10);
   }
 
   function finish() {
@@ -401,6 +438,15 @@
   document.addEventListener('pointerdown', function () {
     ensureAudio();
   }, { once: true });
+
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(function () { fitCellType(); }).observe(board);
+  } else {
+    window.addEventListener('resize', fitCellType);
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitCellType);
+  }
 
   themeOn();
   syncMode();
