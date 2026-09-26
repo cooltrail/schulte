@@ -12,12 +12,14 @@
       var bg = localStorage.getItem('schulte-bg');
       var grid = localStorage.getItem('schulte-grid');
       var hit = localStorage.getItem('schulte-hit');
+      var menu = localStorage.getItem('schulte-menu');
       if (bg) document.documentElement.style.setProperty('--bg', bg);
       if (grid) document.documentElement.style.setProperty('--grid', grid);
       if (hit) document.documentElement.style.setProperty('--hit', hit);
+      if (menu) document.documentElement.style.setProperty('--menu', menu);
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <div class="page">
@@ -75,10 +77,18 @@
           <span>Click</span>
           <input id="hit-color" type="color" value="#2f6f4e" aria-label="Clicked cell color" />
         </label>
+        <label class="swatch">
+          <span>Menu</span>
+          <input id="menu-color" type="color" value="#1c1b19" aria-label="Menu color" />
+        </label>
+        <label class="shade">
+          <span>Shade</span>
+          <input id="grid-alpha" type="range" min="0" max="100" value="100" aria-label="Cell shade transparency" />
+        </label>
       </div>
       <button id="shuffle-btn" type="button">Shuffle</button>
     </footer>
   </div>
-  <script src="script.js?v=9"></script>
+  <script src="script.js?v=10"></script>
 </body>
 </html>

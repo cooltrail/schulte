@@ -8,6 +8,8 @@
   var BG_KEY = 'schulte-bg';
   var GRID_KEY = 'schulte-grid';
   var HIT_KEY = 'schulte-hit';
+  var MENU_KEY = 'schulte-menu';
+  var ALPHA_KEY = 'schulte-grid-alpha';
 
   var sizeButtons = document.getElementById('size-buttons');
   var board = document.getElementById('board');
@@ -26,6 +28,8 @@
   var bgInput = document.getElementById('bg-color');
   var gridInput = document.getElementById('grid-color');
   var hitInput = document.getElementById('hit-color');
+  var menuInput = document.getElementById('menu-color');
+  var alphaInput = document.getElementById('grid-alpha');
 
   var INSPECT_SEC = 10;
   var size = clampSize(parseInt(localStorage.getItem(SIZE_KEY), 10) || 5);
@@ -102,11 +106,22 @@
   var customBg = readHex(BG_KEY);
   var customGrid = readHex(GRID_KEY);
   var customHit = readHex(HIT_KEY);
+  var customMenu = readHex(MENU_KEY);
+
+  function readAlpha() {
+    var n = parseInt(localStorage.getItem(ALPHA_KEY), 10);
+    if (isNaN(n)) return 100;
+    if (n < 0) return 0;
+    if (n > 100) return 100;
+    return n;
+  }
+
+  var customAlpha = readAlpha();
 
   function themeColors() {
     return document.documentElement.classList.contains('light')
-      ? { bg: '#f7f1e6', grid: '#1a1916', hit: '#5dba86' }
-      : { bg: '#111114', grid: '#f4e7d0', hit: '#2f6f4e' };
+      ? { bg: '#f7f1e6', grid: '#1a1916', hit: '#5dba86', menu: '#efe6d4' }
+      : { bg: '#111114', grid: '#f4e7d0', hit: '#2f6f4e', menu: '#1c1b19' };
   }
 
   function hexToRgb(hex) {
@@ -140,23 +155,34 @@
     return luma(hex) > 0.55 ? '#111114' : '#f4e7d0';
   }
 
+  function hexAlpha(hex, a) {
+    var c = hexToRgb(hex);
+    return 'rgba(' + c.r + ', ' + c.g + ', ' + c.b + ', ' + a + ')';
+  }
+
   function applyColors() {
     var theme = themeColors();
     var bg = customBg || theme.bg;
     var grid = customGrid || theme.grid;
     var hit = customHit || theme.hit;
+    var menu = customMenu || theme.menu;
+    var shade = customAlpha / 100;
     var fg = contrastInk(bg);
     var cellInk = contrastInk(grid);
     var hitInk = contrastInk(hit);
+    var menuInk = contrastInk(menu);
     var line = mix(grid, cellInk, 0.26);
     var root = document.documentElement.style;
     root.setProperty('--bg', bg);
     root.setProperty('--fg', fg);
-    root.setProperty('--grid', grid);
-    root.setProperty('--grid-2', mix(grid, cellInk, 0.1));
+    root.setProperty('--grid', hexAlpha(grid, shade));
+    root.setProperty('--grid-2', hexAlpha(mix(grid, cellInk, 0.1), shade));
     root.setProperty('--grid-line', line);
     root.setProperty('--cell-ink', cellInk);
-    root.setProperty('--hud', mix(bg, fg, 0.1));
+    root.setProperty('--hud', menu);
+    root.setProperty('--menu', menu);
+    root.setProperty('--menu-ink', menuInk);
+    root.setProperty('--menu-mist', mix(menuInk, menu, 0.4));
     root.setProperty('--mist', mix(fg, bg, 0.4));
     root.setProperty('--rule', line);
     root.setProperty('--hit', hit);
@@ -166,6 +192,8 @@
     bgInput.value = bg;
     gridInput.value = grid;
     hitInput.value = hit;
+    menuInput.value = menu;
+    alphaInput.value = String(customAlpha);
   }
 
   function ensureAudio() {
@@ -535,6 +563,22 @@
   hitInput.addEventListener('input', function () {
     customHit = hexOk(hitInput.value) ? hitInput.value.toLowerCase() : customHit;
     if (customHit) localStorage.setItem(HIT_KEY, customHit);
+    applyColors();
+  });
+
+  menuInput.addEventListener('input', function () {
+    customMenu = hexOk(menuInput.value) ? menuInput.value.toLowerCase() : customMenu;
+    if (customMenu) localStorage.setItem(MENU_KEY, customMenu);
+    applyColors();
+  });
+
+  alphaInput.addEventListener('input', function () {
+    var n = parseInt(alphaInput.value, 10);
+    if (isNaN(n)) n = 100;
+    if (n < 0) n = 0;
+    if (n > 100) n = 100;
+    customAlpha = n;
+    localStorage.setItem(ALPHA_KEY, String(customAlpha));
     applyColors();
   });
 

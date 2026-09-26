@@ -18,6 +18,8 @@
   --cell-ink: var(--ink);
   --hit: var(--good);
   --hit-ink: #fff;
+  --menu: var(--hud);
+  --menu-ink: var(--paper);
 }
 
 html.light {
@@ -78,9 +80,9 @@ html, body {
 #shuffle-btn,
 #again-btn {
   font-family: inherit;
-  background: transparent;
-  color: var(--fg);
-  border: 1px solid var(--grid-line);
+  background: var(--menu);
+  color: var(--menu-ink);
+  border: 1px solid var(--menu);
   border-radius: 999px;
   padding: 0.4rem 0.9rem;
   cursor: pointer;
@@ -109,9 +111,9 @@ html, body {
 }
 
 .size-btn.on {
-  background: var(--grid);
-  color: var(--cell-ink);
-  border-color: var(--grid);
+  background: var(--menu);
+  color: var(--menu-ink);
+  border-color: var(--menu);
 }
 
 .hud {
@@ -121,7 +123,8 @@ html, body {
 }
 
 .stat {
-  background: var(--hud);
+  background: var(--menu);
+  color: var(--menu-ink);
   border-radius: 0.7rem;
   padding: 0.55rem 0.7rem;
   text-align: center;
@@ -132,7 +135,7 @@ html, body {
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--mist);
+  color: var(--menu-mist, var(--mist));
 }
 
 .v {
@@ -309,6 +312,24 @@ html.light .done {
 .swatch input[type="color"]::-moz-color-swatch {
   border: none;
   border-radius: 999px;
+}
+
+.shade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+.shade input[type="range"] {
+  width: 4.8rem;
+  margin: 0.45rem 0 0;
+  accent-color: var(--fg);
+  cursor: pointer;
 }
 
 @media (min-width: 720px) {
