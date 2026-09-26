@@ -7,9 +7,15 @@
   <meta name="description" content="A Schulte table for focus training. Find the numbers in order." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111114'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='Georgia' fill='%23f4e7d0'%3E5%3C/text%3E%3C/svg%3E" />
   <script>
-    if (localStorage.getItem('schulte-theme') === 'light') document.documentElement.classList.add('light');
+    (function () {
+      if (localStorage.getItem('schulte-theme') === 'light') document.documentElement.classList.add('light');
+      var bg = localStorage.getItem('schulte-bg');
+      var grid = localStorage.getItem('schulte-grid');
+      if (bg) document.documentElement.style.setProperty('--bg', bg);
+      if (grid) document.documentElement.style.setProperty('--grid', grid);
+    })();
   </script>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <div class="page">
@@ -54,9 +60,19 @@
     </main>
 
     <footer class="foot">
+      <div class="colors" aria-label="Colors">
+        <label class="swatch">
+          <span>Grid</span>
+          <input id="grid-color" type="color" value="#f4e7d0" aria-label="Grid color" />
+        </label>
+        <label class="swatch">
+          <span>Back</span>
+          <input id="bg-color" type="color" value="#111114" aria-label="Background color" />
+        </label>
+      </div>
       <button id="shuffle-btn" type="button">Shuffle</button>
     </footer>
   </div>
-  <script src="script.js?v=7"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>

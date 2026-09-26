@@ -5,6 +5,8 @@
   var THEME_KEY = 'schulte-theme';
   var MODE_KEY = 'schulte-mode';
   var BEST_KEY = 'schulte-best';
+  var BG_KEY = 'schulte-bg';
+  var GRID_KEY = 'schulte-grid';
 
   var sizeButtons = document.getElementById('size-buttons');
   var board = document.getElementById('board');
@@ -20,6 +22,8 @@
   var themeBtn = document.getElementById('theme-btn');
   var tagline = document.getElementById('tagline');
   var modeBtns = document.querySelectorAll('[data-mode]');
+  var bgInput = document.getElementById('bg-color');
+  var gridInput = document.getElementById('grid-color');
 
   var INSPECT_SEC = 10;
   var size = clampSize(parseInt(localStorage.getItem(SIZE_KEY), 10) || 5);
@@ -82,6 +86,77 @@
   function themeOn() {
     var light = document.documentElement.classList.contains('light');
     themeBtn.textContent = light ? 'Dark' : 'Light';
+  }
+
+  function hexOk(v) {
+    return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
+  }
+
+  function readHex(key) {
+    var v = localStorage.getItem(key);
+    return hexOk(v) ? v.toLowerCase() : null;
+  }
+
+  var customBg = readHex(BG_KEY);
+  var customGrid = readHex(GRID_KEY);
+
+  function themeColors() {
+    return document.documentElement.classList.contains('light')
+      ? { bg: '#f7f1e6', grid: '#1a1916' }
+      : { bg: '#111114', grid: '#f4e7d0' };
+  }
+
+  function hexToRgb(hex) {
+    return {
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16)
+    };
+  }
+
+  function rgbToHex(r, g, b) {
+    function h(n) {
+      var v = Math.max(0, Math.min(255, Math.round(n))).toString(16);
+      return v.length === 1 ? '0' + v : v;
+    }
+    return '#' + h(r) + h(g) + h(b);
+  }
+
+  function mix(a, b, t) {
+    var A = hexToRgb(a);
+    var B = hexToRgb(b);
+    return rgbToHex(A.r + (B.r - A.r) * t, A.g + (B.g - A.g) * t, A.b + (B.b - A.b) * t);
+  }
+
+  function luma(hex) {
+    var c = hexToRgb(hex);
+    return (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
+  }
+
+  function contrastInk(hex) {
+    return luma(hex) > 0.55 ? '#111114' : '#f4e7d0';
+  }
+
+  function applyColors() {
+    var theme = themeColors();
+    var bg = customBg || theme.bg;
+    var grid = customGrid || theme.grid;
+    var fg = contrastInk(bg);
+    var cellInk = contrastInk(grid);
+    var line = mix(grid, cellInk, 0.26);
+    var root = document.documentElement.style;
+    root.setProperty('--bg', bg);
+    root.setProperty('--fg', fg);
+    root.setProperty('--grid', grid);
+    root.setProperty('--grid-2', mix(grid, cellInk, 0.1));
+    root.setProperty('--grid-line', line);
+    root.setProperty('--cell-ink', cellInk);
+    root.setProperty('--hud', mix(bg, fg, 0.1));
+    root.setProperty('--mist', mix(fg, bg, 0.4));
+    root.setProperty('--rule', line);
+    root.setProperty('--found', mix(cellInk, grid, 0.45));
+    bgInput.value = bg;
+    gridInput.value = grid;
   }
 
   function ensureAudio() {
@@ -433,6 +508,19 @@
     localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
     tapSound('ui');
     themeOn();
+    applyColors();
+  });
+
+  gridInput.addEventListener('input', function () {
+    customGrid = hexOk(gridInput.value) ? gridInput.value.toLowerCase() : customGrid;
+    if (customGrid) localStorage.setItem(GRID_KEY, customGrid);
+    applyColors();
+  });
+
+  bgInput.addEventListener('input', function () {
+    customBg = hexOk(bgInput.value) ? bgInput.value.toLowerCase() : customBg;
+    if (customBg) localStorage.setItem(BG_KEY, customBg);
+    applyColors();
   });
 
   document.addEventListener('pointerdown', function () {
@@ -449,6 +537,7 @@
   }
 
   themeOn();
+  applyColors();
   syncMode();
   buildSizes();
   newTable();
