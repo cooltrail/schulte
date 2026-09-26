@@ -240,7 +240,8 @@ html, body {
 .done {
   position: absolute;
   inset: 0;
-  background: rgba(17, 17, 20, 0.82);
+  background: var(--bg);
+  color: var(--fg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -249,10 +250,6 @@ html, body {
   border-radius: 0.5rem;
   text-align: center;
   padding: 1rem;
-}
-
-html.light .done {
-  background: rgba(247, 241, 230, 0.88);
 }
 
 .done p {
