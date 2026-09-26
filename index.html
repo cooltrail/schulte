@@ -8,7 +8,6 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111114'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='Georgia' fill='%23f4e7d0'%3E5%3C/text%3E%3C/svg%3E" />
   <script>
     (function () {
-      if (localStorage.getItem('schulte-theme') === 'light') document.documentElement.classList.add('light');
       var bg = localStorage.getItem('schulte-bg');
       var grid = localStorage.getItem('schulte-grid');
       var hit = localStorage.getItem('schulte-hit');
@@ -19,7 +18,7 @@
       if (menu) document.documentElement.style.setProperty('--menu', menu);
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <div class="page">
@@ -28,7 +27,6 @@
         <h1>Schulte</h1>
         <p id="tagline">Tap 1, then 2, then the rest. Eyes stay on the center.</p>
       </div>
-      <button id="theme-btn" type="button" aria-label="Toggle theme">Light</button>
     </header>
 
     <section class="modes" aria-label="Mode">
@@ -89,6 +87,6 @@
       <button id="shuffle-btn" type="button">Shuffle</button>
     </footer>
   </div>
-  <script src="script.js?v=12"></script>
+  <script src="script.js?v=13"></script>
 </body>
 </html>

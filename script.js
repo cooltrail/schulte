@@ -2,7 +2,6 @@
   'use strict';
 
   var SIZE_KEY = 'schulte-size';
-  var THEME_KEY = 'schulte-theme';
   var MODE_KEY = 'schulte-mode';
   var BEST_KEY = 'schulte-best';
   var BG_KEY = 'schulte-bg';
@@ -22,7 +21,6 @@
   var doneCopy = document.getElementById('done-copy');
   var againBtn = document.getElementById('again-btn');
   var shuffleBtn = document.getElementById('shuffle-btn');
-  var themeBtn = document.getElementById('theme-btn');
   var tagline = document.getElementById('tagline');
   var modeBtns = document.querySelectorAll('[data-mode]');
   var bgInput = document.getElementById('bg-color');
@@ -89,11 +87,6 @@
     bestEl.textContent = best == null ? '—' : fmt(best);
   }
 
-  function themeOn() {
-    var light = document.documentElement.classList.contains('light');
-    themeBtn.textContent = light ? 'Dark' : 'Light';
-  }
-
   function hexOk(v) {
     return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
   }
@@ -118,10 +111,8 @@
 
   var customAlpha = readAlpha();
 
-  function themeColors() {
-    return document.documentElement.classList.contains('light')
-      ? { bg: '#f7f1e6', grid: '#1a1916', hit: '#5dba86', menu: '#efe6d4' }
-      : { bg: '#111114', grid: '#f4e7d0', hit: '#2f6f4e', menu: '#1c1b19' };
+  function defaultColors() {
+    return { bg: '#111114', grid: '#f4e7d0', hit: '#2f6f4e', menu: '#1c1b19' };
   }
 
   function hexToRgb(hex) {
@@ -161,11 +152,11 @@
   }
 
   function applyColors() {
-    var theme = themeColors();
-    var bg = customBg || theme.bg;
-    var grid = customGrid || theme.grid;
-    var hit = customHit || theme.hit;
-    var menu = customMenu || theme.menu;
+    var defaults = defaultColors();
+    var bg = customBg || defaults.bg;
+    var grid = customGrid || defaults.grid;
+    var hit = customHit || defaults.hit;
+    var menu = customMenu || defaults.menu;
     var shade = customAlpha / 100;
     var fg = contrastInk(bg);
     var cellInk = contrastInk(grid);
@@ -539,15 +530,6 @@
     });
   });
 
-  themeBtn.addEventListener('click', function () {
-    var light = !document.documentElement.classList.contains('light');
-    document.documentElement.classList.toggle('light', light);
-    localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
-    tapSound('ui');
-    themeOn();
-    applyColors();
-  });
-
   gridInput.addEventListener('input', function () {
     customGrid = hexOk(gridInput.value) ? gridInput.value.toLowerCase() : customGrid;
     if (customGrid) localStorage.setItem(GRID_KEY, customGrid);
@@ -595,7 +577,6 @@
     document.fonts.ready.then(fitCellType);
   }
 
-  themeOn();
   applyColors();
   syncMode();
   buildSizes();

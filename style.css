@@ -22,20 +22,6 @@
   --menu-ink: var(--paper);
 }
 
-html.light {
-  --ink: #f7f1e6;
-  --paper: #1a1916;
-  --paper-2: #24221d;
-  --rule: #3a372f;
-  --found: #4a453c;
-  --accent: #e07a3d;
-  --good: #5dba86;
-  --bad: #e06a6a;
-  --mist: #9a9286;
-  --hud: #efe6d4;
-  --shadow: 0 18px 50px rgba(40, 30, 10, 0.12);
-}
-
 * { box-sizing: border-box; }
 
 html, body {
@@ -76,7 +62,6 @@ html, body {
   font-size: 0.95rem;
 }
 
-#theme-btn,
 #shuffle-btn,
 #again-btn {
   font-family: inherit;
