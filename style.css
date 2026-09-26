@@ -240,8 +240,10 @@ html, body {
 .done {
   position: absolute;
   inset: 0;
-  background: var(--bg);
-  color: var(--fg);
+  background: rgba(8, 8, 11, 0.72);
+  color: #f4e7d0;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   align-items: center;
