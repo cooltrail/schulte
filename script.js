@@ -185,7 +185,7 @@
     root.setProperty('--menu-mist', mix(menuInk, menu, 0.4));
     root.setProperty('--mist', mix(fg, bg, 0.4));
     root.setProperty('--rule', line);
-    root.setProperty('--hit', hit);
+    root.setProperty('--hit', hexAlpha(hit, shade));
     root.setProperty('--hit-ink', hitInk);
     root.setProperty('--good', hit);
     root.setProperty('--found', hitInk);
