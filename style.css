@@ -244,7 +244,7 @@ html, body {
   font-size: 1.3rem;
 }
 
-.done.hidden { display: none; }
+.hidden { display: none; }
 
 .foot {
   display: flex;

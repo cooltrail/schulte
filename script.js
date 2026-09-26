@@ -30,8 +30,9 @@
   var alphaInput = document.getElementById('grid-alpha');
 
   var INSPECT_SEC = 10;
+  var MIX_SIZE = 5;
   var size = clampSize(parseInt(localStorage.getItem(SIZE_KEY), 10) || 5);
-  var mode = localStorage.getItem(MODE_KEY) === 'prime' ? 'prime' : 'classic';
+  var mode = readMode(localStorage.getItem(MODE_KEY));
   var sequence = [];
   var nextIndex = 0;
   var started = false;
@@ -49,6 +50,15 @@
     return n;
   }
 
+  function readMode(v) {
+    if (v === 'prime' || v === 'mix') return v;
+    return 'classic';
+  }
+
+  function gridSize() {
+    return mode === 'mix' ? MIX_SIZE : size;
+  }
+
   function bestMap() {
     try {
       return JSON.parse(localStorage.getItem(BEST_KEY) || '{}');
@@ -58,7 +68,7 @@
   }
 
   function bestKey() {
-    return mode + '-' + size;
+    return mode + '-' + gridSize();
   }
 
   function readBest() {
@@ -277,6 +287,24 @@
     } catch (e) {}
   }
 
+  function isPrime(n) {
+    if (n < 2) return false;
+    var i;
+    for (i = 2; i * i <= n; i++) {
+      if (n % i === 0) return false;
+    }
+    return true;
+  }
+
+  function primesIn(list) {
+    var out = [];
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (isPrime(list[i])) out.push(list[i]);
+    }
+    return out;
+  }
+
   function firstPrimes(count) {
     var primes = [];
     var n = 2;
@@ -319,9 +347,14 @@
     modeBtns.forEach(function (btn) {
       btn.classList.toggle('on', btn.dataset.mode === mode);
     });
-    tagline.textContent = mode === 'prime'
-      ? 'Tap primes in order: 2, then 3, then 5. Eyes stay on the center.'
-      : 'Tap 1, then 2, then the rest. Eyes stay on the center.';
+    if (mode === 'mix') {
+      tagline.textContent = 'Tap only the primes: 2, then 3, then 5. Skip the rest.';
+    } else if (mode === 'prime') {
+      tagline.textContent = 'Tap primes in order: 2, then 3, then 5. Eyes stay on the center.';
+    } else {
+      tagline.textContent = 'Tap 1, then 2, then the rest. Eyes stay on the center.';
+    }
+    sizeButtons.parentElement.classList.toggle('hidden', mode === 'mix');
   }
 
   function showTimeLabel(look) {
@@ -388,7 +421,7 @@
     for (n = 2; n <= 10; n++) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'size-btn' + (n === size ? ' on' : '');
+      btn.className = 'size-btn' + (n === gridSize() ? ' on' : '');
       btn.textContent = n + '×' + n;
       btn.dataset.size = String(n);
       sizeButtons.appendChild(btn);
@@ -401,16 +434,18 @@
     finished = false;
     inspecting = false;
     nextIndex = 0;
-    sequence = mode === 'prime' ? firstPrimes(size * size) : range(size * size);
+    var n = gridSize();
+    var numbers = mode === 'prime' ? firstPrimes(n * n) : range(n * n);
+    sequence = mode === 'mix' ? primesIn(numbers) : numbers;
     t0 = 0;
     nextEl.textContent = String(sequence[0]);
     timeEl.textContent = fmt(INSPECT_SEC);
     doneEl.classList.add('hidden');
     showBest();
     board.classList.remove('shake', 'inspecting');
-    board.style.setProperty('--n', String(size));
+    board.style.setProperty('--n', String(n));
     board.innerHTML = '';
-    shuffle(sequence).forEach(function (num) {
+    shuffle(numbers).forEach(function (num) {
       var cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell';
@@ -522,10 +557,11 @@
 
   modeBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      mode = btn.dataset.mode === 'prime' ? 'prime' : 'classic';
+      mode = readMode(btn.dataset.mode);
       localStorage.setItem(MODE_KEY, mode);
       tapSound('ui');
       syncMode();
+      buildSizes();
       newTable();
     });
   });
