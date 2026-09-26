@@ -56,7 +56,7 @@
   }
 
   function gridSize() {
-    return mode === 'mix' ? MIX_SIZE : size;
+    return mode === 'mix' ? Math.max(MIX_SIZE, size) : size;
   }
 
   function bestMap() {
@@ -354,7 +354,6 @@
     } else {
       tagline.textContent = 'Tap 1, then 2, then the rest. Eyes stay on the center.';
     }
-    sizeButtons.parentElement.classList.toggle('hidden', mode === 'mix');
   }
 
   function showTimeLabel(look) {
@@ -417,8 +416,9 @@
 
   function buildSizes() {
     sizeButtons.innerHTML = '';
+    var min = mode === 'mix' ? MIX_SIZE : 2;
     var n;
-    for (n = 2; n <= 10; n++) {
+    for (n = min; n <= 10; n++) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'size-btn' + (n === gridSize() ? ' on' : '');
@@ -540,6 +540,7 @@
     var btn = e.target.closest('.size-btn');
     if (!btn) return;
     size = clampSize(Number(btn.dataset.size));
+    if (mode === 'mix' && size < MIX_SIZE) size = MIX_SIZE;
     localStorage.setItem(SIZE_KEY, String(size));
     tapSound('ui');
     buildSizes();
