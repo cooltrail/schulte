@@ -175,8 +175,8 @@
     var root = document.documentElement.style;
     root.setProperty('--bg', bg);
     root.setProperty('--fg', fg);
-    root.setProperty('--grid', hexAlpha(grid, shade));
-    root.setProperty('--grid-2', hexAlpha(mix(grid, cellInk, 0.1), shade));
+    root.setProperty('--grid', grid);
+    root.setProperty('--grid-2', mix(grid, cellInk, 0.1));
     root.setProperty('--grid-line', line);
     root.setProperty('--cell-ink', cellInk);
     root.setProperty('--hud', menu);
