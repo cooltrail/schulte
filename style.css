@@ -16,6 +16,8 @@
   --grid-2: var(--paper-2);
   --grid-line: var(--rule);
   --cell-ink: var(--ink);
+  --hit: var(--good);
+  --hit-ink: #fff;
 }
 
 html.light {
@@ -208,12 +210,13 @@ html, body {
 }
 
 .cell.got {
-  color: var(--found);
+  background: var(--hit);
+  color: var(--hit-ink);
 }
 
 .cell.flash {
-  background: var(--good);
-  color: #fff;
+  background: var(--hit);
+  color: var(--hit-ink);
 }
 
 .cell.miss {

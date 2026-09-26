@@ -7,6 +7,7 @@
   var BEST_KEY = 'schulte-best';
   var BG_KEY = 'schulte-bg';
   var GRID_KEY = 'schulte-grid';
+  var HIT_KEY = 'schulte-hit';
 
   var sizeButtons = document.getElementById('size-buttons');
   var board = document.getElementById('board');
@@ -24,6 +25,7 @@
   var modeBtns = document.querySelectorAll('[data-mode]');
   var bgInput = document.getElementById('bg-color');
   var gridInput = document.getElementById('grid-color');
+  var hitInput = document.getElementById('hit-color');
 
   var INSPECT_SEC = 10;
   var size = clampSize(parseInt(localStorage.getItem(SIZE_KEY), 10) || 5);
@@ -99,11 +101,12 @@
 
   var customBg = readHex(BG_KEY);
   var customGrid = readHex(GRID_KEY);
+  var customHit = readHex(HIT_KEY);
 
   function themeColors() {
     return document.documentElement.classList.contains('light')
-      ? { bg: '#f7f1e6', grid: '#1a1916' }
-      : { bg: '#111114', grid: '#f4e7d0' };
+      ? { bg: '#f7f1e6', grid: '#1a1916', hit: '#5dba86' }
+      : { bg: '#111114', grid: '#f4e7d0', hit: '#2f6f4e' };
   }
 
   function hexToRgb(hex) {
@@ -141,8 +144,10 @@
     var theme = themeColors();
     var bg = customBg || theme.bg;
     var grid = customGrid || theme.grid;
+    var hit = customHit || theme.hit;
     var fg = contrastInk(bg);
     var cellInk = contrastInk(grid);
+    var hitInk = contrastInk(hit);
     var line = mix(grid, cellInk, 0.26);
     var root = document.documentElement.style;
     root.setProperty('--bg', bg);
@@ -154,9 +159,13 @@
     root.setProperty('--hud', mix(bg, fg, 0.1));
     root.setProperty('--mist', mix(fg, bg, 0.4));
     root.setProperty('--rule', line);
-    root.setProperty('--found', mix(cellInk, grid, 0.45));
+    root.setProperty('--hit', hit);
+    root.setProperty('--hit-ink', hitInk);
+    root.setProperty('--good', hit);
+    root.setProperty('--found', hitInk);
     bgInput.value = bg;
     gridInput.value = grid;
+    hitInput.value = hit;
   }
 
   function ensureAudio() {
@@ -520,6 +529,12 @@
   bgInput.addEventListener('input', function () {
     customBg = hexOk(bgInput.value) ? bgInput.value.toLowerCase() : customBg;
     if (customBg) localStorage.setItem(BG_KEY, customBg);
+    applyColors();
+  });
+
+  hitInput.addEventListener('input', function () {
+    customHit = hexOk(hitInput.value) ? hitInput.value.toLowerCase() : customHit;
+    if (customHit) localStorage.setItem(HIT_KEY, customHit);
     applyColors();
   });
 
