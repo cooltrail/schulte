@@ -42,6 +42,7 @@
   var round = 0;
   var started = false;
   var leaving = false;
+  var leftOnPurpose = false;
   var players = [];
 
   nameIn.value = localStorage.getItem(NAME_KEY) || 'Player';
@@ -277,10 +278,27 @@
     } else if (msg.type === 'final') {
       players = msg.players;
       showFinal();
+    } else if (msg.type === 'end') {
+      kicked('Host left. The tournament is over.');
     }
   }
 
+  function endRoom() {
+    if (!isHost) return;
+    broadcast({ type: 'end', reason: 'host-left' });
+  }
+
+  function kicked(msg) {
+    if (leftOnPurpose || !peer) return;
+    var snap = game.snapshot();
+    destroyPeer();
+    game.applyRules(snap.mode, snap.size, true);
+    showErr(msg || 'Host left. The tournament is over.');
+    view('home');
+  }
+
   function destroyPeer() {
+    leftOnPurpose = true;
     leaving = true;
     game.setOnRoundDone(null);
     game.setOnRulesChange(null);
@@ -309,6 +327,7 @@
   }
 
   function leave() {
+    endRoom();
     destroyPeer();
     view('home');
     overlay.classList.add('hidden');
@@ -334,6 +353,7 @@
       view('home');
     });
     peer.on('open', function () {
+      leftOnPurpose = false;
       players = [{ id: 'host', name: myName(), times: [] }];
       codeOut.textContent = roomCode.slice(0, 3) + ' ' + roomCode.slice(3);
       startBtn.classList.remove('hidden');
@@ -388,6 +408,7 @@
         view('home');
       }, 8000);
       hostConn.on('open', function () {
+        leftOnPurpose = false;
         clearTimeout(timer);
         send(hostConn, { type: 'join', id: myId, name: myName() });
         codeOut.textContent = code.slice(0, 3) + ' ' + code.slice(3);
@@ -398,10 +419,10 @@
       });
       hostConn.on('data', handleMsg);
       hostConn.on('close', function () {
-        if (leaving) return;
-        showErr('Host left the room.');
-        destroyPeer();
-        view('home');
+        kicked('Host left. The tournament is over.');
+      });
+      hostConn.on('error', function () {
+        kicked('Host left. The tournament is over.');
       });
     });
   }
@@ -450,4 +471,7 @@
   codeIn.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') joinRoom();
   });
+
+  window.addEventListener('pagehide', endRoom);
+  window.addEventListener('beforeunload', endRoom);
 })();
