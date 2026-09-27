@@ -27,6 +27,7 @@
   var errEl = document.getElementById('mp-err');
   var playersEl = document.getElementById('mp-players');
   var resultsEl = document.getElementById('mp-results');
+  var rulesEl = document.getElementById('mp-rules');
   var bar = document.getElementById('mp-bar');
   var roundEl = document.getElementById('mp-round');
   var standingsEl = document.getElementById('mp-standings');
@@ -76,6 +77,28 @@
     var i;
     for (i = 0; i < p.times.length; i++) t += p.times[i];
     return t;
+  }
+
+  function rulesLabel(rules) {
+    var r = rules || game.snapshot();
+    var name = r.mode === 'prime' ? 'Prime' : r.mode === 'mix' ? 'Mix' : 'Classic';
+    return name + ' · ' + r.size + '×' + r.size;
+  }
+
+  function applySharedRules(rules, rebuild) {
+    if (!rules) return;
+    game.applyRules(rules.mode, rules.size, rebuild);
+    if (rulesEl) rulesEl.textContent = rulesLabel(rules);
+  }
+
+  function renderRules() {
+    if (rulesEl) rulesEl.textContent = rulesLabel(game.snapshot());
+  }
+
+  function pushRules() {
+    var rules = game.snapshot();
+    broadcast({ type: 'rules', mode: rules.mode, size: rules.size });
+    renderRules();
   }
 
   function renderPlayers() {
@@ -164,6 +187,7 @@
   function playRound(i) {
     round = i;
     started = true;
+    if (pack) applySharedRules({ mode: pack.mode, size: pack.size }, false);
     game.setLocked(true);
     overlay.classList.add('hidden');
     bar.classList.remove('hidden');
@@ -214,18 +238,29 @@
     if (!msg || !msg.type) return;
     if (msg.type === 'join' && isHost) {
       addPlayer(msg.id, msg.name);
-      send(guests[msg.id], { type: 'welcome', id: msg.id, players: players });
+      send(guests[msg.id], {
+        type: 'welcome',
+        id: msg.id,
+        players: players,
+        rules: game.snapshot()
+      });
       pushRoster();
     } else if (msg.type === 'welcome') {
       myId = msg.id;
       players = msg.players;
+      applySharedRules(msg.rules, true);
+      game.setLocked(true);
       renderPlayers();
+    } else if (msg.type === 'rules') {
+      applySharedRules(msg, !started);
+      game.setLocked(true);
     } else if (msg.type === 'roster') {
       players = msg.players;
       renderPlayers();
       renderStandings();
     } else if (msg.type === 'start') {
       pack = msg.pack;
+      if (pack) applySharedRules({ mode: pack.mode, size: pack.size }, false);
     } else if (msg.type === 'go') {
       if (msg.players) players = msg.players;
       playRound(msg.round);
@@ -248,6 +283,7 @@
   function destroyPeer() {
     leaving = true;
     game.setOnRoundDone(null);
+    game.setOnRulesChange(null);
     game.setLocked(false);
     bar.classList.add('hidden');
     started = false;
@@ -303,7 +339,12 @@
       startBtn.classList.remove('hidden');
       view('lobby');
       renderPlayers();
+      renderRules();
+      game.setLocked(true);
       game.setOnRoundDone(onLocalTime);
+      game.setOnRulesChange(function () {
+        if (isHost && !started) pushRules();
+      });
     });
     peer.on('connection', function (conn) {
       guests[conn.peer] = conn;
@@ -353,6 +394,7 @@
         startBtn.classList.add('hidden');
         view('lobby');
         game.setOnRoundDone(onLocalTime);
+        game.setLocked(true);
       });
       hostConn.on('data', handleMsg);
       hostConn.on('close', function () {
@@ -383,6 +425,7 @@
     bar.classList.add('hidden');
     game.setLocked(false);
     pushRoster();
+    pushRules();
     startBtn.classList.remove('hidden');
     view('lobby');
   }

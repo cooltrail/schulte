@@ -18,7 +18,7 @@
       if (menu) document.documentElement.style.setProperty('--menu', menu);
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
   <div class="page">
@@ -101,7 +101,7 @@
 
       <div id="mp-home">
         <h2>Multiplayer</h2>
-        <p class="mp-lead">Five shared tables. Lowest total time wins.</p>
+        <p class="mp-lead">Five shared tables. Same mode and grid for everyone. Lowest total time wins.</p>
         <label class="mp-field">
           <span>Your name</span>
           <input id="mp-name" type="text" maxlength="12" autocomplete="nickname" />
@@ -118,6 +118,7 @@
         <p class="mp-k">Room code</p>
         <p id="mp-code-out" class="mp-code"></p>
         <p class="mp-lead">Friends tap Multiplayer and enter this code.</p>
+        <p id="mp-rules" class="mp-code-sub">Classic · 5×5</p>
         <ul id="mp-players" class="mp-players"></ul>
         <button id="mp-start" type="button">Start tournament</button>
         <button id="mp-leave" type="button">Leave</button>
@@ -133,7 +134,7 @@
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="script.js?v=16"></script>
-  <script src="multiplayer.js?v=2"></script>
+  <script src="script.js?v=17"></script>
+  <script src="multiplayer.js?v=3"></script>
 </body>
 </html>

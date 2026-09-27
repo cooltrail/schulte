@@ -403,6 +403,12 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+.mp-code-sub {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--fg);
+}
+
 .mp-field,
 .mp-join-row {
   display: flex;

@@ -45,6 +45,7 @@
   var noiseBuf = null;
   var mpLocked = false;
   var onRoundDone = null;
+  var onRulesChange = null;
 
   function clampSize(n) {
     if (n < 2) return 2;
@@ -430,6 +431,21 @@
     }
   }
 
+  function applyRules(nextMode, nextSize, rebuild) {
+    mode = readMode(nextMode);
+    size = clampSize(Number(nextSize) || size);
+    if (mode === 'mix' && size < MIX_SIZE) size = MIX_SIZE;
+    localStorage.setItem(MODE_KEY, mode);
+    localStorage.setItem(SIZE_KEY, String(size));
+    syncMode();
+    buildSizes();
+    if (rebuild) newTable();
+  }
+
+  function emitRules() {
+    if (onRulesChange) onRulesChange({ mode: mode, size: gridSize() });
+  }
+
   function newTable() {
     stopClock();
     started = false;
@@ -596,6 +612,7 @@
     tapSound('ui');
     buildSizes();
     newTable();
+    emitRules();
   });
 
   shuffleBtn.addEventListener('click', function () {
@@ -618,6 +635,7 @@
       syncMode();
       buildSizes();
       newTable();
+      emitRules();
     });
   });
 
@@ -676,7 +694,9 @@
   window.SchulteGame = {
     playPrepared: playPrepared,
     makeRounds: makeRounds,
+    applyRules: applyRules,
     setOnRoundDone: function (fn) { onRoundDone = fn; },
+    setOnRulesChange: function (fn) { onRulesChange = fn; },
     setLocked: function (v) { mpLocked = !!v; },
     snapshot: function () { return { mode: mode, size: gridSize() }; }
   };
