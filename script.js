@@ -43,6 +43,8 @@
   var raf = 0;
   var audioCtx = null;
   var noiseBuf = null;
+  var mpLocked = false;
+  var onRoundDone = null;
 
   function clampSize(n) {
     if (n < 2) return 2;
@@ -457,6 +459,46 @@
     beginInspect();
   }
 
+  function playPrepared(n, numbers, seq) {
+    stopClock();
+    started = false;
+    finished = false;
+    inspecting = false;
+    nextIndex = 0;
+    sequence = seq.slice();
+    t0 = 0;
+    nextEl.textContent = String(sequence[0]);
+    timeEl.textContent = fmt(INSPECT_SEC);
+    doneEl.classList.add('hidden');
+    againBtn.classList.remove('hidden');
+    showBest();
+    board.classList.remove('shake', 'inspecting');
+    board.style.setProperty('--n', String(n));
+    board.innerHTML = '';
+    numbers.forEach(function (num) {
+      var cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell';
+      cell.textContent = String(num);
+      cell.dataset.n = String(num);
+      board.appendChild(cell);
+    });
+    fitCellType();
+    beginInspect();
+  }
+
+  function makeRounds(count) {
+    var n = gridSize();
+    var rounds = [];
+    var r;
+    for (r = 0; r < count; r++) {
+      var numbers = mode === 'prime' ? firstPrimes(n * n) : range(n * n);
+      var seq = mode === 'mix' ? primesIn(numbers) : numbers.slice();
+      rounds.push({ numbers: shuffle(numbers), sequence: seq });
+    }
+    return { mode: mode, size: n, rounds: rounds };
+  }
+
   function glyphBox(el) {
     var range = document.createRange();
     if (el.firstChild) range.selectNodeContents(el.firstChild);
@@ -503,9 +545,18 @@
     timeEl.textContent = fmt(seconds);
     var record = writeBest(seconds);
     showBest();
+    if (onRoundDone) {
+      doneCopy.textContent = 'Round · ' + fmt(seconds) + 's';
+      againBtn.classList.add('hidden');
+      doneEl.classList.remove('hidden');
+      tapSound('done');
+      onRoundDone(seconds);
+      return;
+    }
     doneCopy.textContent = record
       ? 'New best · ' + fmt(seconds) + 's'
       : 'Done · ' + fmt(seconds) + 's';
+    againBtn.classList.remove('hidden');
     doneEl.classList.remove('hidden');
     tapSound('done');
   }
@@ -538,7 +589,7 @@
 
   sizeButtons.addEventListener('click', function (e) {
     var btn = e.target.closest('.size-btn');
-    if (!btn) return;
+    if (!btn || mpLocked) return;
     size = clampSize(Number(btn.dataset.size));
     if (mode === 'mix' && size < MIX_SIZE) size = MIX_SIZE;
     localStorage.setItem(SIZE_KEY, String(size));
@@ -548,16 +599,19 @@
   });
 
   shuffleBtn.addEventListener('click', function () {
+    if (mpLocked) return;
     tapSound('ui');
     newTable();
   });
   againBtn.addEventListener('click', function () {
+    if (mpLocked) return;
     tapSound('ui');
     newTable();
   });
 
   modeBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
+      if (mpLocked) return;
       mode = readMode(btn.dataset.mode);
       localStorage.setItem(MODE_KEY, mode);
       tapSound('ui');
@@ -618,4 +672,12 @@
   syncMode();
   buildSizes();
   newTable();
+
+  window.SchulteGame = {
+    playPrepared: playPrepared,
+    makeRounds: makeRounds,
+    setOnRoundDone: function (fn) { onRoundDone = fn; },
+    setLocked: function (v) { mpLocked = !!v; },
+    snapshot: function () { return { mode: mode, size: gridSize() }; }
+  };
 })();

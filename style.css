@@ -62,8 +62,16 @@ html, body {
   font-size: 0.95rem;
 }
 
+#mp-btn,
 #shuffle-btn,
-#again-btn {
+#again-btn,
+#mp-host,
+#mp-join,
+#mp-start,
+#mp-leave,
+#mp-again,
+#mp-exit,
+#mp-close {
   font-family: inherit;
   background: var(--menu);
   color: var(--menu-ink);
@@ -318,4 +326,146 @@ html, body {
 
 @media (min-width: 720px) {
   .cell { letter-spacing: -0.02em; }
+}
+
+.mp-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--menu);
+  color: var(--menu-ink);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-bar.hidden {
+  display: none;
+}
+
+.mp-standings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  font-size: 0.92rem;
+}
+
+.mp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(8, 8, 11, 0.72);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.mp-overlay.hidden {
+  display: none;
+}
+
+.mp-card {
+  width: min(420px, 100%);
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--grid-line);
+  border-radius: 0.8rem;
+  padding: 1.2rem 1.1rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mp-card h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.mp-lead,
+.mp-k {
+  margin: 0;
+  color: var(--mist);
+}
+
+.mp-k {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mp-code {
+  margin: 0;
+  font-size: 2.2rem;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-field,
+.mp-join-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mp-join-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.mp-field span {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+.mp-card input[type="text"] {
+  font-family: inherit;
+  font-size: 1.1rem;
+  color: var(--fg);
+  background: var(--menu);
+  border: 1px solid var(--grid-line);
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.6rem;
+}
+
+#mp-code-in {
+  flex: 1;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-players,
+.mp-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mp-players li,
+.mp-results li {
+  background: var(--menu);
+  color: var(--menu-ink);
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.mp-err {
+  margin: 0;
+  color: var(--bad);
+}
+
+.mp-x {
+  align-self: flex-start;
+}
+
+#mp-start:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
